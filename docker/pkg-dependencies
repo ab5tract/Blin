@@ -63,5 +63,4 @@ llvm-14-dev
 lrzip
 python3-jupyter-core
 python3-jupyter-core
-rakudo-pkg
 zstd

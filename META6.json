@@ -18,7 +18,6 @@
         "File::Temp",
         "JSON::Fast",
         "Whateverable",
-        "Zef",
         "Pakku"
     ],
     "resources"   : [ ],

@@ -2,4 +2,5 @@
 echo "Running Blin with parameters: $@"
 cp -r /Blin/* /mnt
 cd /mnt
-bin/blin.p6 $@
+#raku -Iinst#/opt/rakudo-pkg/var/zef  bin/blin.p6 $@
+/bin/bash
