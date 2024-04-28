@@ -18,6 +18,8 @@ unit sub MAIN(
     Str :old($start-point) is copy,
     #| New revision (default: HEAD)
     Str :new($end-point) = ‘HEAD’,
+    #| Single revision (overrides --old and --new)
+    Str :single($single-revision) is copy,
     #| Number of threads to use (initialized to the output of `nproc` if unset)
     Int :$nproc is copy,
     #| Thread number multiplier (default: 1.0)
@@ -120,6 +122,10 @@ note “🥞 Will use up to $nproc threads for testing modules”;
 ensure-config ‘./config-default.json’;
 pull-cloned-repos; # pull rakudo and other stuff
 
+if $single-revision || %*ENV<TEST_LATEST> {
+    $start-point = $end-point = $single-revision // 'HEAD'
+}
+
 $start-point //= get-tags(‘2015-12-24’, :default()).tail;
 
 note “🥞 Will compare between $start-point and $end-point”;
@@ -136,10 +142,20 @@ die   ‘End point not found’ unless   $end-point-full;
 my $quick-test = ‘/tmp/quick-test.p6’;
 spurt $quick-test, “say 42\n”;
 
-die ‘No build for start point’ unless build-exists $start-point-full;
-die ‘No build for end point’   unless build-exists   $end-point-full;
-my $test-start = run-snippet $start-point-full, $quick-test;
-my $test-end   = run-snippet   $end-point-full, $quick-test;
+
+if ! build-exists $start-point-full {
+    process-commit "rakudo-moar", $start-point-full;
+}
+
+#die ‘No build for start point’ unless build-exists $start-point-full;
+
+if ! build-exists $end-point-full {
+    process-commit "rakudo-moar", $end-point-full;
+}
+
+#die ‘No build for end point’   unless build-exists   $end-point-full;
+my $test-start = run-snippet $start-point-full, $quick-test, :!bot;
+my $test-end   = run-snippet   $end-point-full, $quick-test, :!bot;
 if $test-start<output>.chomp ne 42 {
     note ‘Dead start point. Output:’;
     note $test-start<output>;
@@ -154,7 +170,7 @@ if $test-end<output>.chomp ne 42 {
 
 # Leave some builds unpacked
 my @always-unpacked = $start-point-full, $end-point-full;
-run-smth $_, {;}, :!wipe for @always-unpacked;
+run-smth $_, {;}, :!wipe, :!bot for @always-unpacked;
 
 note ‘🥞 Modules and stuff’;
 

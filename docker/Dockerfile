@@ -35,7 +35,10 @@ RUN export SHELL=/bin/bash
 # To ignore ake weirdness
 RUN export RAKUDO_NO_DEPRECATIONS=1
 
-# force-install because ake causes deprecation
-RUN cd /Blin && RAKUDO_NO_DEPRECATIONS=1 raku -Iinst#/opt/rakudo-pkg/var/zef /opt/rakudo-pkg/var/zef/bin/zef install --verbose --deps-only --force-install .
+RUN echo "alias zzef='raku -Iinst#/opt/rakudo-pkg/var/zef /opt/rakudo-pkg/var/zef/bin/zef'" >> /root/.bashrc
+RUN alias zzef='raku -Iinst#/opt/rakudo-pkg/var/zef /opt/rakudo-pkg/var/zef/bin/zef'
+
+# force-install because ake causes deprecation errors that RAKUDO_NO_DEPRECATIONS=1 doesn't seem to help
+RUN cd /Blin && zzef install --verbose --deps-only --force-install .
 
 ENTRYPOINT [ "/Blin/docker/entrypoint.sh" ]

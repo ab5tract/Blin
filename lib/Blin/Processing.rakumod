@@ -3,7 +3,7 @@ use Whateverable::Config;
 
 use Whateverable::Bisection;
 use Whateverable::Builds;
-use Whateverable::Config;
+use Whateverable::Building;
 use Whateverable::Output;
 use Whateverable::Running;
 
@@ -410,7 +410,7 @@ sub test-module($full-commit-hash, $module,
     if $full-commit-hash eq @always-unpacked.any {
         return run-it run-smth-build-path $full-commit-hash
     } else {
-        return run-smth $full-commit-hash, &run-it
+        return run-smth $full-commit-hash, &run-it, :!bot
     }
 }
 
@@ -430,7 +430,10 @@ sub process-module(Module $module,
 
     my &alright = -> $result {
         if $result<signal> ≠ 0 {
-            # Huh, that means Zef itself segfaulted.
+            # Huh, that probably means Zef itself segfaulted, but could also relate to
+            # poor setup or extraction of an endpoint
+            # So: report what actually happened.
+            note "Issue with running zef: " ~ (:$result).raku;
             return $module.done.keep: ZefFailure
         }
         $result<exit-code> == 0
